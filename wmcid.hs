@@ -32,6 +32,10 @@ parseCpuInfos procStatContent = getCpuLineAsWords ! drop 1 ! map (\x -> x ! read
 parseAllCpuInfos :: String -> [Int]
 parseAllCpuInfos procStatContent = (filter (\line -> (isPrefixOf "cpu" (line !! 0) && (line !! 0) /= "cpu")) $ toLineOfWords procStatContent) ! map (\x -> (x !! 4 ! read :: Int))
 
+getLoadAvg :: IO [Float]
+getLoadAvg = do
+    readFile "/proc/loadavg" >>= return . map (\x -> read x :: Float) . take 3 . words
+
 mainCpuUsage :: IO Float
 mainCpuUsage = do
     firstTotalIdle <- getTotalIdle
