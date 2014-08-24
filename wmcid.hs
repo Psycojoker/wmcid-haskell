@@ -27,7 +27,8 @@ mainCpuUsage = do
     firstTotalIdle <- getTotalIdle
     threadDelay 1000000 -- wait one second
     secondTotalIdle <- getTotalIdle
-    return $ 100.0 - ((secondTotalIdle - firstTotalIdle) / 8.0)
+    numberOfCpu <- getNumberOfCpu
+    return $ 100.0 - ((secondTotalIdle - firstTotalIdle) / fromIntegral numberOfCpu)
   where getCpuInfos :: String -> [Float]
         getCpuInfos procStatContent = ((filter (\line -> (line !! 0 == "cpu")) $ procStatContent ! lines ! (map words)) !! 0) ! drop 1 ! map (\x -> x ! read :: Float)
         getTotalIdle :: IO Float
