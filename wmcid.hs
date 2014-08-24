@@ -29,9 +29,9 @@ mainCpuUsage = do
     secondTotalIdle <- getTotalIdle
     numberOfCpu <- getNumberOfCpu
     return $ 100.0 - ((secondTotalIdle - firstTotalIdle) / fromIntegral numberOfCpu)
-  where getCpuInfos :: String -> [Float]
-        getCpuInfos procStatContent = ((filter (\line -> (line !! 0 == "cpu")) $ procStatContent ! lines ! (map words)) !! 0) ! drop 1 ! map (\x -> x ! read :: Float)
+  where parseCpuInfos :: String -> [Float]
+        parseCpuInfos procStatContent = ((filter (\line -> (line !! 0 == "cpu")) $ procStatContent ! lines ! (map words)) !! 0) ! drop 1 ! map (\x -> x ! read :: Float)
         getTotalIdle :: IO Float
-        getTotalIdle = readFile "/proc/stat" >>= \x -> return $! (getCpuInfos x) !! 3
+        getTotalIdle = readFile "/proc/stat" >>= \x -> return $! (parseCpuInfos x) !! 3
 
 main = putStrLn "pouet"
