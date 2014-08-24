@@ -1,4 +1,5 @@
 import Data.Maybe(fromMaybe)
+import Data.List(isPrefixOf)
 import Control.Concurrent(threadDelay)
 import System.IO(hGetContents)
 import System.Process(proc, createProcess, StdStream(CreatePipe), std_out, std_err, waitForProcess)
@@ -17,6 +18,9 @@ availableServices = do
     waitForProcess pid
     services <- hGetContents hout
     return $ map (\line -> Service (drop 8 line) (if (line !! 3) == '+' then True else False)) (lines services)
+
+getNumberOfCpu :: IO Int
+getNumberOfCpu = readFile "/proc/cpuinfo" >>= return . length . filter (isPrefixOf "processor") . lines
 
 mainCpuUsage :: IO Float
 mainCpuUsage = do
