@@ -25,8 +25,9 @@ availableServices = do
 getNumberOfCpu :: IO Int
 getNumberOfCpu = readFile "/proc/cpuinfo" >>= return . length . filter (isPrefixOf "processor") . lines
 
-parseCpuInfos :: String -> [Float]
-parseCpuInfos procStatContent = ((filter (\line -> (line !! 0 == "cpu")) $ toLineOfWords procStatContent) !! 0) ! drop 1 ! map (\x -> x ! read :: Float)
+parseCpuInfos :: String -> [Int]
+parseCpuInfos procStatContent = getCpuLineAsWords ! drop 1 ! map (\x -> x ! read :: Int)
+    where getCpuLineAsWords = ((filter (\line -> (line !! 0 == "cpu")) $ toLineOfWords procStatContent) !! 0)
 
 parseAllCpuInfos :: String -> [Int]
 parseAllCpuInfos procStatContent = (filter (\line -> (isPrefixOf "cpu" (line !! 0) && (line !! 0) /= "cpu")) $ toLineOfWords procStatContent) ! map (\x -> (x !! 4 ! read :: Int))
@@ -37,8 +38,8 @@ mainCpuUsage = do
     threadDelay 1000000 -- wait one second
     secondTotalIdle <- getTotalIdle
     numberOfCpu <- getNumberOfCpu
-    return $ 100.0 - ((secondTotalIdle - firstTotalIdle) / fromIntegral numberOfCpu)
-  where getTotalIdle :: IO Float
+    return $ 100.0 - ((fromIntegral (secondTotalIdle - firstTotalIdle)) / (fromIntegral numberOfCpu))
+  where getTotalIdle :: IO Int
         getTotalIdle = readFile "/proc/stat" >>= \x -> return $! (parseCpuInfos x) !! 3
 
 allCpuUsage :: IO [(Int, Int)]
