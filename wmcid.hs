@@ -20,12 +20,13 @@ availableServices = do
 
 mainCpuUsage :: IO Float
 mainCpuUsage = do
-    [_, _, _, firstTotalIdle, _, _, _, _, _, _] <- readFile "/proc/stat" >>= return . getCpuInfos
+    firstTotalIdle <- getTotalIdle
     threadDelay 1000000 -- wait one second
-    [_, _, _, secondTotalIdle, _, _, _, _, _, _] <- readFile "/proc/stat" >>= return . getCpuInfos
-    -- return $ (secondTotalIdle ! read :: Int) - (firstTotalIdle :: read :: Int)
+    secondTotalIdle <- getTotalIdle
     return $ 100.0 - ((secondTotalIdle - firstTotalIdle) / 8.0)
   where getCpuInfos :: String -> [Float]
         getCpuInfos procStatContent = ((filter (\line -> (line !! 0 == "cpu")) $ procStatContent ! lines ! (map words)) !! 0) ! drop 1 ! map (\x -> x ! read :: Float)
+        getTotalIdle :: IO Float
+        getTotalIdle = readFile "/proc/stat" >>= \x -> return $! (getCpuInfos x) !! 3
 
 main = putStrLn "pouet"
