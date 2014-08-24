@@ -7,6 +7,9 @@ import System.Process(proc, createProcess, StdStream(CreatePipe), std_out, std_e
 -- YOLO, let's rewrite bash pipe |o/
 a ! b = b a
 
+toLineOfWords :: String -> [[String]]
+toLineOfWords = (map words) . lines
+
 data Service = Service {
         name :: String,
         running :: Bool
@@ -27,9 +30,6 @@ parseCpuInfos procStatContent = ((filter (\line -> (line !! 0 == "cpu")) $ toLin
 
 parseAllCpuInfos :: String -> [Int]
 parseAllCpuInfos procStatContent = (filter (\line -> (isPrefixOf "cpu" (line !! 0) && (line !! 0) /= "cpu")) $ toLineOfWords procStatContent) ! map (\x -> (x !! 4 ! read :: Int))
-
-toLineOfWords :: String -> [[String]]
-toLineOfWords = (map words) . lines
 
 mainCpuUsage :: IO Float
 mainCpuUsage = do
