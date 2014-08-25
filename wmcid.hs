@@ -17,6 +17,51 @@ data Service = Service {
         running :: Bool
     } deriving Show
 
+
+-- taken from missingH which fails to install with cabal
+startswith :: Eq a => [a] -> [a] -> Bool
+startswith = isPrefixOf
+
+breakList :: ([a] -> Bool) -> [a] -> ([a], [a])
+breakList func = spanList (not . func)
+
+spanList :: ([a] -> Bool) -> [a] -> ([a], [a])
+spanList _ [] = ([],[])
+spanList func list@(x:xs) =
+    if func list
+       then (x:ys,zs)
+       else ([],list)
+    where (ys,zs) = spanList func xs
+
+splitL :: Eq a => [a] -> [a] -> [[a]]
+splitL _ [] = []
+splitL delim str =
+    let (firstline, remainder) = breakList (startswith delim) str
+        in
+        firstline : case remainder of
+                                   [] -> []
+                                   x -> if x == delim
+                                        then [] : []
+                                        else splitL delim
+                                                 (drop (length delim) x)
+
+wschars :: String
+wschars = " \t\r\n"
+
+strip :: String -> String
+strip = lstrip . rstrip
+
+lstrip :: String -> String
+lstrip s = case s of
+                  [] -> []
+                  (x:xs) -> if elem x wschars
+                            then lstrip xs
+                            else s
+
+rstrip :: String -> String
+rstrip = reverse . lstrip . reverse
+-- end of missingH
+
 availableServices :: IO [Service]
 availableServices = do
     (_, Just hout, Just herr, pid) <- createProcess (proc "service" ["--status-all"]){ std_out = CreatePipe, std_err = CreatePipe }
