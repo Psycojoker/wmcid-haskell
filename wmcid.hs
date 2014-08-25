@@ -1,3 +1,5 @@
+import Data.Text(pack, split, unpack)
+import qualified Data.Text(length)
 import Data.Maybe(fromMaybe)
 import Data.List(isPrefixOf)
 import Control.Concurrent(threadDelay)
@@ -35,6 +37,12 @@ parseAllCpuInfos procStatContent = (filter (\line -> (isPrefixOf "cpu" (line !! 
 getLoadAvg :: IO [Float]
 getLoadAvg = do
     readFile "/proc/loadavg" >>= return . map (\x -> read x :: Float) . take 3 . words
+
+getMemInfo :: IO [(String, Int)]
+getMemInfo = do
+    readFile "/proc/meminfo" >>= return . parseMemInfo . lines
+    where parseMemInfo = map parseMemInfoLine
+          parseMemInfoLine line = line ! words ! init ! map pack ! concatMap (split (== ':')) ! (\c -> (c !! 0 ! unpack, c !! 2 ! unpack ! read :: Int))
 
 mainCpuUsage :: IO Float
 mainCpuUsage = do
