@@ -89,6 +89,18 @@ getMemInfo = do
     where parseMemInfo = map parseMemInfoLine
           parseMemInfoLine line = line ! words ! init ! map pack ! concatMap (split (== ':')) ! (\c -> (c !! 0 ! unpack, c !! 2 ! unpack ! read :: Int))
 
+getCpuInfo :: IO [(Int, [(String, String)])]
+getCpuInfo = do
+    readFile "/proc/cpuinfo" >>= return . map extractCpuIdFromBlock . map transformBlockToDict . splitIntoCpuInfoBlocks
+    where splitIntoCpuInfoBlocks :: String -> [String]
+          splitIntoCpuInfoBlocks = filter ((/= 0) . length) . splitL ("\n\n")
+          transformBlockToDict :: String -> [(String, String)]
+          transformBlockToDict = map ((\[a, b] -> (a, b)) . (map strip . splitL ":")) . lines
+          extractCpuIdFromBlock :: [(String, String)] -> (Int, [(String, String)])
+          extractCpuIdFromBlock block = (getCpuId block, block)
+          getCpuId :: [(String, String)] -> Int
+          getCpuId block = ((filter (\(a, b) -> a == "processor") block) !! 0) ! snd ! read :: Int
+
 mainCpuUsage :: IO Float
 mainCpuUsage = do
     firstTotalIdle <- getTotalIdle
